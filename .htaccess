@@ -1,0 +1,23 @@
+Options -Indexes
+DirectoryIndex index.html
+
+RewriteEngine On
+RewriteBase /
+
+# ── Force HTTPS redirect ──────────────────────────────────────────────
+RewriteCond %{HTTPS} off
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+# Jika file/folder benar-benar ada, serve langsung
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# /admin → admin.html
+RewriteRule ^admin/?$ admin.html [L,NC]
+
+# Section clean URLs (/about, /services, /projects, /faq, /contact) → index.html
+RewriteRule ^(home|about|services|projects|faq|contact)/?$ index.html [L,NC]
+
+# Semua lainnya → index.html
+RewriteRule ^ index.html [L]

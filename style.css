@@ -1,0 +1,174 @@
+/* ============================================================
+   BASE
+   ============================================================ */
+body {
+    font-family: 'Inter', sans-serif;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ============================================================
+   DARK MODE — applied when <html class="dark">
+   ============================================================ */
+
+/* Root */
+html.dark body {
+    background-color: #0f172a;
+    color: #e2e8f0;
+}
+
+/* ── Navbar ── */
+html.dark #navbar {
+    background-color: rgba(15, 23, 42, 0.85) !important;
+    border-bottom-color: #1e293b !important;
+}
+html.dark #navbar a,
+html.dark #navbar span {
+    color: #e2e8f0;
+}
+html.dark #navbar a.text-primary-600 { color: #38bdf8; }
+html.dark #navbar a.text-slate-600   { color: #94a3b8; }
+html.dark #navbar a.text-slate-900   { color: #f1f5f9; }
+
+/* Mobile menu */
+html.dark #mobile-menu {
+    background-color: #0f172a;
+    border-bottom-color: #1e293b;
+}
+
+/* ── Hero section ── */
+html.dark #home {
+    background: linear-gradient(to bottom, rgba(14,165,233,0.08), #0f172a) !important;
+}
+html.dark #home h1,
+html.dark #home #hero-heading { color: #f1f5f9; }
+html.dark #home #hero-heading-highlight { color: #f1f5f9; }
+html.dark #home p  { color: #94a3b8; }
+html.dark #home strong { color: #f1f5f9; }
+
+/* hero role badge */
+html.dark .bg-primary-100 { background-color: rgba(14,165,233,0.15) !important; }
+html.dark .text-primary-700 { color: #38bdf8 !important; }
+
+/* availability card */
+html.dark #home .bg-white\/90 {
+    background-color: rgba(30, 41, 59, 0.92) !important;
+    border-color: #334155 !important;
+}
+html.dark #home h4.text-slate-900 { color: #f1f5f9 !important; }
+html.dark #home p.text-slate-500  { color: #94a3b8 !important; }
+
+/* profile card border */
+html.dark #home .border-white { border-color: #334155 !important; }
+
+/* ── About section ── */
+html.dark #about { background-color: #1e293b !important; }
+html.dark #about h2,
+html.dark #about h3,
+html.dark #about h4 { color: #f1f5f9 !important; }
+html.dark #about p,
+html.dark #about-description { color: #94a3b8 !important; }
+html.dark #about .bg-slate-50 { background-color: #0f172a !important; border-color: #334155 !important; }
+html.dark #about .text-primary-600 { color: #38bdf8 !important; }
+html.dark #about .text-slate-500   { color: #64748b !important; }
+
+/* skill badges */
+html.dark #about .bg-primary-50 { background-color: rgba(14,165,233,0.12) !important; }
+html.dark #about .text-primary-700 { color: #38bdf8 !important; }
+
+/* ── Services section ── */
+html.dark #services { background-color: #0f172a !important; }
+html.dark #services h2,
+html.dark #services h3 { color: #f1f5f9 !important; }
+html.dark #services p { color: #94a3b8 !important; }
+html.dark #services .bg-white {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3) !important;
+}
+html.dark #services .bg-primary-50 { background-color: rgba(14,165,233,0.12) !important; }
+html.dark #services .text-primary-600 { color: #38bdf8 !important; }
+
+/* ── Projects section ── */
+html.dark #projects { background-color: #1e293b !important; }
+html.dark #projects h2 { color: #f1f5f9 !important; }
+html.dark #projects p  { color: #94a3b8 !important; }
+html.dark #projects .text-slate-900 { color: #f1f5f9 !important; }
+html.dark #projects-empty { color: #64748b !important; }
+
+/* ── FAQ section ── */
+html.dark #faq { background-color: #0f172a !important; }
+html.dark #faq h2  { color: #f1f5f9 !important; }
+html.dark #faq > div > div > p { color: #94a3b8 !important; }
+html.dark #faq .bg-white {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+}
+html.dark #faq .text-slate-900 { color: #f1f5f9 !important; }
+html.dark #faq .text-slate-600 { color: #94a3b8 !important; }
+html.dark #faq .border-slate-100 { border-color: #334155 !important; }
+
+/* ── Contact section ── */
+html.dark #contact { background-color: #1e293b !important; }
+html.dark #contact h2  { color: #f1f5f9 !important; }
+html.dark #contact p   { color: #94a3b8 !important; }
+html.dark #contact h4  { color: #f1f5f9 !important; }
+html.dark #contact .text-slate-900 { color: #f1f5f9 !important; }
+html.dark #contact .text-slate-600 { color: #94a3b8 !important; }
+html.dark #contact .bg-primary-50  { background-color: rgba(14,165,233,0.12) !important; }
+html.dark #contact .text-primary-600 { color: #38bdf8 !important; }
+
+/* Contact form */
+html.dark #contact-form {
+    background-color: #0f172a !important;
+    border-color: #334155 !important;
+}
+html.dark #contact-form label { color: #cbd5e1 !important; }
+html.dark #contact-form input,
+html.dark #contact-form textarea {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+    color: #e2e8f0 !important;
+}
+html.dark #contact-form input::placeholder,
+html.dark #contact-form textarea::placeholder { color: #64748b !important; }
+
+/* ── Footer ── */
+html.dark footer {
+    background-color: #020617 !important;
+    border-top-color: #1e293b !important;
+}
+
+/* ── Dark mode toggle button ── */
+#theme-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+    background-color: #f1f5f9;
+    color: #475569;
+    font-size: 15px;
+    flex-shrink: 0;
+}
+#theme-toggle:hover {
+    background-color: #e2e8f0;
+    transform: scale(1.05);
+}
+html.dark #theme-toggle {
+    background-color: #1e293b;
+    color: #fbbf24;
+}
+html.dark #theme-toggle:hover {
+    background-color: #334155;
+}
+
+/* ── Smooth transitions on key elements ── */
+#navbar, #home, #about, #services, #projects, #faq, #contact,
+footer, .bg-white, .bg-slate-50, .bg-slate-900 {
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+

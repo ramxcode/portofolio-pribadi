@@ -1,0 +1,717 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <script>
+        // Clean URL: show /admin instead of /admin.html in address bar
+        if (window.history && window.location.pathname.endsWith("admin.html")) {
+            history.replaceState(null, document.title, window.location.pathname.replace("admin.html", "admin"));
+        }
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel — RAMXCODE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50:  '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                        }
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .admin-input {
+            display: block;
+            width: 100%;
+            padding: 0.625rem 1rem;
+            border-radius: 0.75rem;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #1e293b;
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.15s ease;
+            outline: none;
+        }
+        .admin-input:focus { border-color: #0ea5e9; box-shadow: 0 0 0 3px rgba(14,165,233,0.1); }
+        textarea.admin-input { resize: vertical; min-height: 90px; }
+
+        .tab-btn { transition: color 0.15s, border-color 0.15s; }
+        .tab-btn.active-tab { border-bottom-color: #0ea5e9 !important; color: #0284c7 !important; }
+
+        #toast {
+            position: fixed; bottom: 1.5rem; right: 1.5rem;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.75rem;
+            color: #fff;
+            font-size: 0.875rem;
+            font-weight: 700;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,.2);
+            z-index: 9999;
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        #toast.toast-hidden  { opacity: 0; transform: translateY(10px); pointer-events: none; }
+        #toast.toast-visible { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen">
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast-hidden"></div>
+
+    <!-- ================================================================ -->
+    <!-- LOGIN SCREEN                                                       -->
+    <!-- ================================================================ -->
+    <div id="login-screen" class="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-primary-50 via-white to-slate-100">
+        <div class="w-full max-w-sm">
+            <div class="bg-white rounded-3xl shadow-2xl shadow-slate-200/80 p-8 space-y-7 border border-slate-100">
+
+                <!-- Logo -->
+                <div class="text-center space-y-3">
+                    <div class="w-16 h-16 rounded-2xl bg-primary-500 text-white flex items-center justify-center text-2xl mx-auto shadow-lg shadow-primary-500/30">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-black text-slate-900">Admin Panel</h1>
+                        <p class="text-sm text-slate-500 font-medium mt-0.5">RAMXCODE Portfolio Manager</p>
+                    </div>
+                </div>
+
+                <!-- Form -->
+                <form id="login-form" class="space-y-4">
+                    <div class="space-y-1.5">
+                        <label class="block text-sm font-bold text-slate-700">Password</label>
+                        <input
+                            type="password"
+                            id="admin-password"
+                            required
+                            autocomplete="current-password"
+                            class="admin-input"
+                            placeholder="Masukkan password admin"
+                        >
+                    </div>
+                    <div id="login-error" class="hidden p-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm font-semibold text-center">
+                        <i class="fa-solid fa-circle-xmark mr-1"></i> Password salah. Coba lagi.
+                    </div>
+                    <button type="submit" class="w-full py-3 rounded-xl bg-primary-500 text-white font-bold shadow-lg shadow-primary-500/25 hover:bg-primary-600 transition text-sm">
+                        <i class="fa-solid fa-right-to-bracket mr-1.5"></i> Masuk ke Panel
+                    </button>
+                </form>
+
+                <p class="text-center text-xs text-slate-400">
+                    <a href="index.html" class="hover:text-primary-500 transition"><i class="fa-solid fa-arrow-left mr-1"></i>Kembali ke Website</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- ADMIN PANEL                                                        -->
+    <!-- ================================================================ -->
+    <div id="admin-panel" class="hidden min-h-screen flex flex-col">
+
+        <!-- ---- Header ---- -->
+        <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-primary-500 text-white flex items-center justify-center font-black text-sm shadow-md shadow-primary-500/30 flex-shrink-0">
+                        <i class="fa-solid fa-gear"></i>
+                    </div>
+                    <div class="leading-none">
+                        <span class="font-black text-slate-900 text-sm block">Admin Panel</span>
+                        <span class="text-slate-400 text-xs font-medium">RAMXCODE Portfolio</span>
+                    </div>
+                    <!-- DB Status Indicator -->
+                    <div class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200">
+                        <div id="db-status-dot" class="w-2.5 h-2.5 rounded-full flex-shrink-0 bg-slate-300"></div>
+                        <span id="db-status-text" class="text-xs font-semibold text-slate-500">Tanpa Database</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="index.html" target="_blank"
+                       class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 font-semibold text-xs hover:bg-slate-200 transition">
+                        <i class="fa-solid fa-eye"></i> Lihat Website
+                    </a>
+                    <button id="logout-btn"
+                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 text-red-600 font-semibold text-xs hover:bg-red-100 transition">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span class="hidden sm:inline">Keluar</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- ---- Tab Navigation ---- -->
+        <div class="bg-white border-b border-slate-200">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6">
+                <nav class="flex overflow-x-auto">
+                    <button type="button" class="tab-btn active-tab px-4 py-3.5 font-semibold text-sm whitespace-nowrap border-b-2 border-primary-500 text-primary-600" data-tab="branding">
+                        <i class="fa-solid fa-tag mr-1.5"></i>Branding
+                    </button>
+                    <button type="button" class="tab-btn px-4 py-3.5 font-semibold text-sm whitespace-nowrap border-b-2 border-transparent text-slate-500 hover:text-slate-700" data-tab="hero">
+                        <i class="fa-solid fa-house mr-1.5"></i>Hero
+                    </button>
+                    <button type="button" class="tab-btn px-4 py-3.5 font-semibold text-sm whitespace-nowrap border-b-2 border-transparent text-slate-500 hover:text-slate-700" data-tab="about">
+                        <i class="fa-solid fa-user mr-1.5"></i>Tentang
+                    </button>
+                    <button type="button" class="tab-btn px-4 py-3.5 font-semibold text-sm whitespace-nowrap border-b-2 border-transparent text-slate-500 hover:text-slate-700" data-tab="contact">
+                        <i class="fa-solid fa-address-book mr-1.5"></i>Kontak & Sosial
+                    </button>
+                    <button type="button" class="tab-btn px-4 py-3.5 font-semibold text-sm whitespace-nowrap border-b-2 border-transparent text-slate-500 hover:text-slate-700" data-tab="projects">
+                        <i class="fa-solid fa-code-branch mr-1.5"></i>Proyek
+                    </button>
+                    <button type="button" class="tab-btn px-4 py-3.5 font-semibold text-sm whitespace-nowrap border-b-2 border-transparent text-slate-500 hover:text-slate-700" data-tab="security">
+                        <i class="fa-solid fa-lock mr-1.5"></i>Keamanan
+                    </button>
+                </nav>
+            </div>
+        </div>
+
+        <!-- ---- Main Content ---- -->
+        <main class="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-8">
+
+            <!-- Settings Form (Branding, Hero, About, Contact) -->
+            <div id="settings-wrapper">
+                <form id="settings-form" novalidate>
+
+                    <!-- ================================================ -->
+                    <!-- TAB: BRANDING                                      -->
+                    <!-- ================================================ -->
+                    <div id="tab-branding" class="tab-content space-y-6">
+                        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                            <div class="mb-5 pb-4 border-b border-slate-100">
+                                <h2 class="text-base font-bold text-slate-900">Branding & Identitas</h2>
+                                <p class="text-sm text-slate-500 mt-0.5">Atur nama brand, judul halaman, dan teks footer.</p>
+                            </div>
+                            <div class="space-y-5">
+
+                                <!-- Navbar Brand Mode -->
+                                <div class="space-y-2">
+                                    <label class="block text-sm font-bold text-slate-700">Mode Navbar Brand</label>
+                                    <div class="flex gap-3">
+                                        <label class="flex items-center gap-2 cursor-pointer">
+                                            <input type="radio" name="brandMode" id="field-brandMode-text" value="text" class="accent-primary-500">
+                                            <span class="text-sm font-semibold text-slate-700">Teks</span>
+                                        </label>
+                                        <label class="flex items-center gap-2 cursor-pointer">
+                                            <input type="radio" name="brandMode" id="field-brandMode-logo" value="logo" class="accent-primary-500">
+                                            <span class="text-sm font-semibold text-slate-700">Logo (Gambar)</span>
+                                        </label>
+                                    </div>
+                                    <p class="text-xs text-slate-400">Pilih tampilan brand di navbar — teks atau gambar logo.</p>
+                                </div>
+
+                                <div class="space-y-1.5" id="brand-name-group">
+                                    <label class="block text-sm font-bold text-slate-700">Nama Brand (Navbar)</label>
+                                    <input type="text" name="brandName" id="field-brandName" class="admin-input" placeholder="RAMXCODE">
+                                    <p class="text-xs text-slate-400">Teks yang muncul di navbar kiri atas.</p>
+                                </div>
+
+                                <div class="space-y-1.5" id="brand-logo-group">
+                                    <label class="block text-sm font-bold text-slate-700">URL Logo Navbar</label>
+                                    <input type="text" name="brandLogoUrl" id="field-brandLogoUrl" class="admin-input" placeholder="logo.png atau https://...">
+                                    <p class="text-xs text-slate-400">URL gambar logo untuk navbar. Default: <code style="background:#f1f5f9;padding:1px 4px;border-radius:3px">logo.png</code></p>
+                                    <div id="brand-logo-preview" class="mt-2 p-3 rounded-xl bg-slate-50 border border-slate-200 inline-flex items-center gap-3">
+                                        <img id="brand-logo-preview-img" src="logo.png" alt="Preview" style="height:36px;object-fit:contain;">
+                                        <span class="text-xs text-slate-500 font-medium">Preview logo navbar</span>
+                                    </div>
+                                </div>
+
+                                <!-- Footer Brand Mode -->
+                                <div class="space-y-2 pt-2 border-t border-slate-100">
+                                    <label class="block text-sm font-bold text-slate-700">Mode Footer Brand</label>
+                                    <div class="flex gap-3 flex-wrap">
+                                        <label class="flex items-center gap-2 cursor-pointer">
+                                            <input type="radio" name="footerMode" id="field-footerMode-hidden" value="hidden" class="accent-primary-500">
+                                            <span class="text-sm font-semibold text-slate-700">Tersembunyi</span>
+                                        </label>
+                                        <label class="flex items-center gap-2 cursor-pointer">
+                                            <input type="radio" name="footerMode" id="field-footerMode-text" value="text" class="accent-primary-500">
+                                            <span class="text-sm font-semibold text-slate-700">Teks</span>
+                                        </label>
+                                        <label class="flex items-center gap-2 cursor-pointer">
+                                            <input type="radio" name="footerMode" id="field-footerMode-logo" value="logo" class="accent-primary-500">
+                                            <span class="text-sm font-semibold text-slate-700">Logo (Gambar)</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-1.5" id="footer-brand-text-group">
+                                    <label class="block text-sm font-bold text-slate-700">Teks Brand Footer</label>
+                                    <input type="text" name="footerBrand" id="field-footerBrand" class="admin-input" placeholder="RAMXCODE - Portofolio">
+                                </div>
+
+                                <div class="space-y-1.5" id="footer-logo-group">
+                                    <label class="block text-sm font-bold text-slate-700">URL Logo Footer</label>
+                                    <input type="text" name="footerLogoUrl" id="field-footerLogoUrl" class="admin-input" placeholder="logo.png atau https://...">
+                                    <p class="text-xs text-slate-400">Gambar akan ditampilkan putih di atas background gelap footer.</p>
+                                </div>
+
+                                <div class="space-y-1.5">
+                                    <label class="block text-sm font-bold text-slate-700">Teks Copyright</label>
+                                    <input type="text" name="footerCopyright" id="field-footerCopyright" class="admin-input" placeholder="© 2026 RAMXCODE. All Right Reserved.">
+                                </div>
+
+                                <div class="space-y-1.5">
+                                    <label class="block text-sm font-bold text-slate-700">Judul Tab Browser</label>
+                                    <input type="text" name="pageTitle" id="field-pageTitle" class="admin-input" placeholder="M Ikram - Portofolio">
+                                </div>
+
+                                <!-- Logo Upload & Favicon -->
+                                <div class="space-y-3 pt-2 border-t border-slate-100">
+                                    <label class="block text-sm font-bold text-slate-700">
+                                        <i class="fa-solid fa-image text-primary-500 mr-1"></i>Upload / Ganti Logo
+                                    </label>
+                                    <p class="text-xs text-slate-400">Upload file PNG/SVG untuk menggantikan <code style="background:#f1f5f9;padding:1px 4px;border-radius:3px">logo.png</code> — dipakai sebagai logo navbar, footer, dan favicon.</p>
+
+                                    <!-- Upload area -->
+                                    <div class="flex items-center gap-3 flex-wrap">
+                                        <label for="logo-file-input" class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary-50 border border-primary-200 text-primary-700 font-semibold text-sm cursor-pointer hover:bg-primary-100 transition">
+                                            <i class="fa-solid fa-upload"></i> Pilih File Gambar
+                                        </label>
+                                        <input type="file" id="logo-file-input" accept="image/png,image/svg+xml,image/jpeg,image/webp" class="hidden">
+                                        <span id="logo-file-name" class="text-sm text-slate-500 font-medium italic">Belum ada file dipilih</span>
+                                    </div>
+
+                                    <!-- Preview after upload -->
+                                    <div id="logo-upload-preview" class="hidden mt-2 p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+                                        <div class="flex items-center gap-4">
+                                            <div class="bg-white rounded-xl p-2 border border-slate-200 shadow-sm">
+                                                <img id="logo-upload-preview-img" src="" alt="Preview" style="height:48px;object-fit:contain;">
+                                            </div>
+                                            <div class="bg-slate-800 rounded-xl p-2 border border-slate-700 shadow-sm">
+                                                <img id="logo-upload-preview-dark" src="" alt="Preview Dark" style="height:48px;object-fit:contain;filter:invert(1);">
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-bold text-slate-700">Preview terang / gelap</p>
+                                                <p class="text-xs text-slate-500">Kiri = navbar, Kanan = footer</p>
+                                            </div>
+                                        </div>
+                                        <button type="button" id="logo-upload-save-btn" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-500 text-white font-bold text-sm hover:bg-green-600 transition shadow-md">
+                                            <i class="fa-solid fa-floppy-disk"></i> Simpan sebagai logo.png
+                                        </button>
+                                        <p id="logo-upload-status" class="text-xs font-semibold text-slate-500"></p>
+                                    </div>
+
+                                    <!-- Manual URL -->
+                                    <div class="space-y-1.5 pt-1">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide">Atau masukkan URL logo / favicon</label>
+                                        <input type="text" id="field-faviconUrl" class="admin-input" placeholder="logo.png atau https://...">
+                                        <p class="text-xs text-slate-400">Biarkan kosong untuk tetap pakai <code style="background:#f1f5f9;padding:1px 4px;border-radius:3px">logo.png</code></p>
+                                    </div>
+                                </div>
+
+                                <!-- Upload Foto Profil -->
+                                <div class="space-y-3 pt-2 border-t border-slate-100">
+                                    <label class="block text-sm font-bold text-slate-700">
+                                        <i class="fa-solid fa-user-circle text-primary-500 mr-1"></i>Upload / Ganti Foto Profil
+                                    </label>
+                                    <p class="text-xs text-slate-400">Upload foto yang akan tampil di bagian Hero (halaman utama). Format JPG, PNG, WebP.</p>
+
+                                    <div class="flex items-center gap-3 flex-wrap">
+                                        <label for="profile-file-input" class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary-50 border border-primary-200 text-primary-700 font-semibold text-sm cursor-pointer hover:bg-primary-100 transition">
+                                            <i class="fa-solid fa-upload"></i> Pilih Foto Profil
+                                        </label>
+                                        <input type="file" id="profile-file-input" accept="image/png,image/jpeg,image/webp" class="hidden">
+                                        <span id="profile-file-name" class="text-sm text-slate-500 font-medium italic">Belum ada file dipilih</span>
+                                    </div>
+
+                                    <!-- Preview -->
+                                    <div id="profile-upload-preview" class="hidden mt-2 p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+                                        <div class="flex items-center gap-4">
+                                            <img id="profile-upload-preview-img" src="" alt="Preview Foto" style="width:80px;height:80px;object-fit:cover;border-radius:50%;border:3px solid #e2e8f0;">
+                                            <div>
+                                                <p class="text-xs font-bold text-slate-700">Preview Foto Profil</p>
+                                                <p class="text-xs text-slate-500">Foto akan tampil di halaman utama website</p>
+                                            </div>
+                                        </div>
+                                        <button type="button" id="profile-upload-save-btn" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-500 text-white font-bold text-sm hover:bg-green-600 transition shadow-md">
+                                            <i class="fa-solid fa-floppy-disk"></i> Simpan Foto Profil
+                                        </button>
+                                        <p id="profile-upload-status" class="text-xs font-semibold text-slate-500"></p>
+                                    </div>
+
+                                    <!-- Atau URL manual -->
+                                    <div class="space-y-1.5 pt-1">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide">Atau masukkan URL foto profil</label>
+                                        <input type="text" name="profileImage" id="field-profileImage" class="admin-input" placeholder="https://...foto.jpg">
+                                        <p class="text-xs text-slate-400">URL langsung ke file gambar (JPG, PNG, WebP).</p>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-end gap-3">
+                            <button type="button" class="reset-btn px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-semibold text-sm hover:bg-slate-200 transition">
+                                <i class="fa-solid fa-rotate-left mr-1"></i> Reset Default
+                            </button>
+                            <button type="submit" class="px-5 py-2 rounded-xl bg-primary-500 text-white font-bold shadow-md shadow-primary-500/25 hover:bg-primary-600 transition text-sm">
+                                <i class="fa-solid fa-floppy-disk mr-1.5"></i> Simpan Perubahan
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ================================================ -->
+                    <!-- TAB: HERO                                          -->
+                    <!-- ================================================ -->
+                    <div id="tab-hero" class="tab-content hidden space-y-6">
+                        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                            <div class="mb-5 pb-4 border-b border-slate-100">
+                                <h2 class="text-base font-bold text-slate-900">Section Hero (Beranda)</h2>
+                                <p class="text-sm text-slate-500 mt-0.5">Konten utama yang tampil pertama kali di halaman beranda.</p>
+                            </div>
+                            <div class="space-y-5">
+                                <div class="space-y-1.5">
+                                    <label class="block text-sm font-bold text-slate-700">Role / Posisi</label>
+                                    <input type="text" name="heroRole" id="field-heroRole" class="admin-input" placeholder="Frontend Developer & UI/UX Enthusiast">
+                                </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                    <div class="space-y-1.5">
+                                        <label class="block text-sm font-bold text-slate-700">Heading Utama</label>
+                                        <input type="text" name="heroHeading" id="field-heroHeading" class="admin-input" placeholder="Membangun Pengalaman Digital yang ">
+                                        <p class="text-xs text-slate-400">Teks biasa (sebelum warna biru).</p>
+                                    </div>
+                                    <div class="space-y-1.5">
+                                        <label class="block text-sm font-bold text-slate-700">Teks Highlight (Biru)</label>
+                                        <input type="text" name="heroHeadingHighlight" id="field-heroHeadingHighlight" class="admin-input" placeholder="Interaktif & Modern">
+                                        <p class="text-xs text-slate-400">Teks berwarna biru di heading.</p>
+                                    </div>
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="block text-sm font-bold text-slate-700">Nama (dalam deskripsi)</label>
+                                    <input type="text" name="heroName" id="field-heroName" class="admin-input" placeholder="M Ikram">
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="block text-sm font-bold text-slate-700">Deskripsi Hero</label>
+                                    <textarea name="heroDescription" id="field-heroDescription" rows="3" class="admin-input" placeholder="Saya membantu mengubah ide kreatif..."></textarea>
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="block text-sm font-bold text-slate-700">URL Foto Profil</label>
+                                    <input type="text" id="field-profileImage-hero-ref" class="admin-input" placeholder="https://..." disabled style="opacity:0.5;cursor:not-allowed;">
+                                    <p class="text-xs text-slate-400">⬆ Atur foto profil di tab <strong>Branding</strong> → "Upload / Ganti Foto Profil".</p>
+                                </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                    <div class="space-y-1.5">
+                                        <label class="block text-sm font-bold text-slate-700">Status Ketersediaan</label>
+                                        <input type="text" name="availabilityText" id="field-availabilityText" class="admin-input" placeholder="Tersedia untuk Freelance">
+                                    </div>
+                                    <div class="space-y-1.5">
+                                        <label class="block text-sm font-bold text-slate-700">Sub-teks Ketersediaan</label>
+                                        <input type="text" name="availabilitySubtext" id="field-availabilitySubtext" class="admin-input" placeholder="Siap mengerjakan proyek baru">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-end gap-3">
+                            <button type="button" class="reset-btn px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-semibold text-sm hover:bg-slate-200 transition">
+                                <i class="fa-solid fa-rotate-left mr-1"></i> Reset Default
+                            </button>
+                            <button type="submit" class="px-5 py-2 rounded-xl bg-primary-500 text-white font-bold shadow-md shadow-primary-500/25 hover:bg-primary-600 transition text-sm">
+                                <i class="fa-solid fa-floppy-disk mr-1.5"></i> Simpan Perubahan
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ================================================ -->
+                    <!-- TAB: ABOUT                                         -->
+                    <!-- ================================================ -->
+                    <div id="tab-about" class="tab-content hidden space-y-6">
+                        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                            <div class="mb-5 pb-4 border-b border-slate-100">
+                                <h2 class="text-base font-bold text-slate-900">Section Tentang Saya</h2>
+                                <p class="text-sm text-slate-500 mt-0.5">Konten di bagian "Tentang Saya".</p>
+                            </div>
+                            <div class="space-y-5">
+                                <div class="space-y-1.5">
+                                    <label class="block text-sm font-bold text-slate-700">Deskripsi</label>
+                                    <textarea name="aboutDescription" id="field-aboutDescription" rows="4" class="admin-input" placeholder="Saya adalah seorang Frontend Developer..."></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-bold text-slate-700 mb-3">Statistik</label>
+                                    <div class="grid grid-cols-3 gap-4">
+                                        <div class="space-y-1.5">
+                                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide">Tahun Pengalaman</label>
+                                            <input type="text" name="statYears" id="field-statYears" class="admin-input" placeholder="3+">
+                                        </div>
+                                        <div class="space-y-1.5">
+                                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide">Proyek Selesai</label>
+                                            <input type="text" name="statProjects" id="field-statProjects" class="admin-input" placeholder="45+">
+                                        </div>
+                                        <div class="space-y-1.5">
+                                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide">Klien Puas</label>
+                                            <input type="text" name="statClients" id="field-statClients" class="admin-input" placeholder="100%">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-end gap-3">
+                            <button type="button" class="reset-btn px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-semibold text-sm hover:bg-slate-200 transition">
+                                <i class="fa-solid fa-rotate-left mr-1"></i> Reset Default
+                            </button>
+                            <button type="submit" class="px-5 py-2 rounded-xl bg-primary-500 text-white font-bold shadow-md shadow-primary-500/25 hover:bg-primary-600 transition text-sm">
+                                <i class="fa-solid fa-floppy-disk mr-1.5"></i> Simpan Perubahan
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ================================================ -->
+                    <!-- TAB: CONTACT & SOCIAL                              -->
+                    <!-- ================================================ -->
+                    <div id="tab-contact" class="tab-content hidden space-y-6">
+                        <!-- Kontak -->
+                        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                            <div class="mb-5 pb-4 border-b border-slate-100">
+                                <h2 class="text-base font-bold text-slate-900">Informasi Kontak</h2>
+                                <p class="text-sm text-slate-500 mt-0.5">Data kontak yang tampil di halaman.</p>
+                            </div>
+                            <div class="space-y-5">
+                                <div class="space-y-1.5">
+                                    <label class="block text-sm font-bold text-slate-700">
+                                        <i class="fa-solid fa-envelope text-primary-500 mr-1"></i> Email
+                                    </label>
+                                    <input type="email" name="contactEmail" id="field-contactEmail" class="admin-input" placeholder="email@example.com">
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="block text-sm font-bold text-slate-700">
+                                        <i class="fa-solid fa-phone text-primary-500 mr-1"></i> Telepon / WhatsApp
+                                    </label>
+                                    <input type="text" name="contactPhone" id="field-contactPhone" class="admin-input" placeholder="+628...">
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="block text-sm font-bold text-slate-700">
+                                        <i class="fa-solid fa-location-dot text-primary-500 mr-1"></i> Lokasi
+                                    </label>
+                                    <input type="text" name="contactLocation" id="field-contactLocation" class="admin-input" placeholder="Kota, Negara">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Media Sosial -->
+                        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                            <div class="mb-5 pb-4 border-b border-slate-100">
+                                <h2 class="text-base font-bold text-slate-900">Media Sosial</h2>
+                                <p class="text-sm text-slate-500 mt-0.5">URL link ke profil media sosial Anda.</p>
+                            </div>
+                            <div class="space-y-5">
+                                <div class="space-y-1.5">
+                                    <label class="block text-sm font-bold text-slate-700">
+                                        <i class="fa-brands fa-github mr-1"></i> GitHub
+                                    </label>
+                                    <input type="text" name="socialGithub" id="field-socialGithub" class="admin-input" placeholder="https://github.com/username">
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="block text-sm font-bold text-slate-700">
+                                        <i class="fa-brands fa-linkedin mr-1"></i> LinkedIn
+                                    </label>
+                                    <input type="text" name="socialLinkedin" id="field-socialLinkedin" class="admin-input" placeholder="https://linkedin.com/in/username">
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="block text-sm font-bold text-slate-700">
+                                        <i class="fa-brands fa-instagram mr-1"></i> Instagram
+                                    </label>
+                                    <input type="text" name="socialInstagram" id="field-socialInstagram" class="admin-input" placeholder="https://instagram.com/username">
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="block text-sm font-bold text-slate-700">
+                                        <i class="fa-brands fa-x-twitter mr-1"></i> Twitter / X
+                                    </label>
+                                    <input type="text" name="socialTwitter" id="field-socialTwitter" class="admin-input" placeholder="https://x.com/username">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-end gap-3">
+                            <button type="button" class="reset-btn px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-semibold text-sm hover:bg-slate-200 transition">
+                                <i class="fa-solid fa-rotate-left mr-1"></i> Reset Default
+                            </button>
+                            <button type="submit" class="px-5 py-2 rounded-xl bg-primary-500 text-white font-bold shadow-md shadow-primary-500/25 hover:bg-primary-600 transition text-sm">
+                                <i class="fa-solid fa-floppy-disk mr-1.5"></i> Simpan Perubahan
+                            </button>
+                        </div>
+                    </div>
+
+                </form>
+            </div><!-- end settings-wrapper -->
+
+            <!-- ================================================ -->
+            <!-- TAB: PROJECTS (outside settings-form)            -->
+            <!-- ================================================ -->
+            <div id="tab-projects" class="hidden space-y-6">
+
+                <!-- Tambah / Edit Proyek -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                    <div class="mb-5 pb-4 border-b border-slate-100 flex items-center justify-between gap-3 flex-wrap">
+                        <div>
+                            <h2 class="text-base font-bold text-slate-900"><i class="fa-solid fa-plus-circle text-primary-500 mr-1.5"></i>Tambah Proyek Baru</h2>
+                            <p class="text-sm text-slate-500 mt-0.5">Isi form di bawah lalu klik <strong>Simpan Proyek</strong>.</p>
+                        </div>
+                    </div>
+                    <form id="project-form" novalidate class="space-y-4">
+                        <input type="hidden" id="project-edit-index" value="-1">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="space-y-1.5">
+                                <label class="block text-sm font-bold text-slate-700">Nama Proyek / Aplikasi <span class="text-red-400">*</span></label>
+                                <input type="text" id="proj-name" required class="admin-input" placeholder="E-Commerce Dashboard">
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="block text-sm font-bold text-slate-700">Bahasa / Teknologi <span class="text-red-400">*</span></label>
+                                <input type="text" id="proj-tags" required class="admin-input" placeholder="React.js, Material UI (pisahkan dengan koma)">
+                                <p class="text-xs text-slate-400">Contoh: React.js, Node.js, Figma</p>
+                            </div>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="block text-sm font-bold text-slate-700">Deskripsi <span class="text-red-400">*</span></label>
+                            <textarea id="proj-desc" required rows="2" class="admin-input" placeholder="Deskripsi singkat tentang proyek ini..."></textarea>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="space-y-1.5">
+                                <label class="block text-sm font-bold text-slate-700">URL Gambar Proyek <span class="text-red-400">*</span></label>
+                                <input type="text" id="proj-image" required class="admin-input" placeholder="https://...gambar.jpg">
+                                <p class="text-xs text-slate-400">URL langsung ke gambar (JPG, PNG, WebP).</p>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="block text-sm font-bold text-slate-700">Link Proyek</label>
+                                <input type="text" id="proj-link" class="admin-input" placeholder="https://github.com/... atau https://live-demo.com">
+                                <p class="text-xs text-slate-400">Kosongkan jika tidak ada link.</p>
+                            </div>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="block text-sm font-bold text-slate-700">Ukuran Kartu</label>
+                            <select id="proj-size" class="admin-input">
+                                <option value="normal">Normal (1 kolom)</option>
+                                <option value="large">Lebar (2 kolom / featured)</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-3 pt-2">
+                            <button type="submit" class="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-primary-500 text-white font-bold shadow-md shadow-primary-500/25 hover:bg-primary-600 transition text-sm">
+                                <i class="fa-solid fa-floppy-disk"></i> <span id="project-save-label">Simpan Proyek</span>
+                            </button>
+                            <button type="button" id="project-cancel-edit" class="hidden px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-semibold text-sm hover:bg-slate-200 transition">
+                                <i class="fa-solid fa-xmark mr-1"></i> Batal Edit
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Daftar Proyek -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                    <div class="mb-5 pb-4 border-b border-slate-100">
+                        <h2 class="text-base font-bold text-slate-900"><i class="fa-solid fa-list text-primary-500 mr-1.5"></i>Daftar Proyek</h2>
+                        <p class="text-sm text-slate-500 mt-0.5">Urutan di sini = urutan tampil di website. Klik drag untuk urutkan (segera hadir).</p>
+                    </div>
+                    <div id="projects-list" class="space-y-3">
+                        <p id="projects-list-empty" class="text-sm text-slate-400 italic text-center py-8">Belum ada proyek. Tambah proyek di form di atas.</p>
+                    </div>
+                </div>
+
+            </div><!-- end tab-projects -->
+
+            <!-- ================================================ -->
+            <!-- TAB: SECURITY (outside settings-form)             -->
+            <!-- ================================================ -->
+            <div id="tab-security" class="hidden space-y-6">
+
+                <!-- API / Database Configuration -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                    <div class="mb-5 pb-4 border-b border-slate-100">
+                        <h2 class="text-base font-bold text-slate-900">
+                            <i class="fa-solid fa-database text-primary-500 mr-1.5"></i>Koneksi Database (cPanel MySQL)
+                        </h2>
+                        <p class="text-sm text-slate-500 mt-0.5">Hubungkan ke MySQL agar pengaturan tersimpan di server dan sinkron di semua perangkat.</p>
+                    </div>
+                    <form id="api-config-form" class="space-y-5">
+                        <div class="space-y-1.5">
+                            <label class="block text-sm font-bold text-slate-700">URL API</label>
+                            <input type="text" id="api-url-input" class="admin-input" placeholder="https://domainanda.com/api.php">
+                            <p class="text-xs text-slate-400">URL lengkap ke file <code style="background:#f1f5f9;padding:1px 4px;border-radius:3px;font-size:0.75rem">api.php</code> di hosting Anda.</p>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="block text-sm font-bold text-slate-700">API Secret Key</label>
+                            <input type="password" id="api-secret-input" class="admin-input" placeholder="Secret key dari config.php">
+                            <p class="text-xs text-slate-400">Harus sama dengan nilai <code style="background:#f1f5f9;padding:1px 4px;border-radius:3px;font-size:0.75rem">API_SECRET</code> di <code style="background:#f1f5f9;padding:1px 4px;border-radius:3px;font-size:0.75rem">config.php</code>.</p>
+                        </div>
+                        <div id="api-test-result" class="hidden"></div>
+                        <div class="flex items-center gap-3 flex-wrap">
+                            <button type="button" id="test-api-btn"
+                                    class="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-semibold text-sm hover:bg-slate-200 transition">
+                                <i class="fa-solid fa-plug"></i> Test Koneksi
+                            </button>
+                            <button type="submit"
+                                    class="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary-500 text-white font-bold shadow-md shadow-primary-500/25 hover:bg-primary-600 transition text-sm">
+                                <i class="fa-solid fa-floppy-disk"></i> Simpan Konfigurasi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Setup Guide -->
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5">
+                    <p class="text-sm font-bold text-slate-700 mb-3"><i class="fa-solid fa-list-ol mr-1.5 text-primary-500"></i>Panduan Setup Database cPanel:</p>
+                    <ol class="space-y-2 text-xs text-slate-600 font-medium list-decimal list-inside">
+                        <li>Edit <code style="background:#e2e8f0;padding:1px 4px;border-radius:3px">config.php</code> dengan kredensial database cPanel Anda.</li>
+                        <li>Upload semua file PHP ke folder website di cPanel (via File Manager / FTP).</li>
+                        <li>Buka <code style="background:#e2e8f0;padding:1px 4px;border-radius:3px">https://domain.com/install.php</code> di browser untuk membuat tabel.</li>
+                        <li>Isi <strong>URL API</strong> dan <strong>API Secret Key</strong> di atas, klik <strong>Test Koneksi</strong>.</li>
+                        <li>Klik <strong>Simpan Konfigurasi</strong> jika test berhasil.</li>
+                        <li style="color:#dc2626;font-weight:700">Hapus <code style="background:#fee2e2;padding:1px 4px;border-radius:3px">install.php</code> dari server setelah selesai!</li>
+                    </ol>
+                </div>
+
+                <!-- Change Password -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                    <div class="mb-5 pb-4 border-b border-slate-100">
+                        <h2 class="text-base font-bold text-slate-900">Ubah Password Admin</h2>
+                        <p class="text-sm text-slate-500 mt-0.5">Ganti password untuk mengakses admin panel ini.</p>
+                    </div>
+                    <form id="change-password-form" class="space-y-5 max-w-md">
+                        <div class="space-y-1.5">
+                            <label class="block text-sm font-bold text-slate-700">Password Saat Ini</label>
+                            <input type="password" id="current-password" required class="admin-input" placeholder="••••••••">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="block text-sm font-bold text-slate-700">Password Baru</label>
+                            <input type="password" id="new-password" required minlength="6" class="admin-input" placeholder="Minimal 6 karakter">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="block text-sm font-bold text-slate-700">Konfirmasi Password Baru</label>
+                            <input type="password" id="confirm-password" required class="admin-input" placeholder="Ulangi password baru">
+                        </div>
+                        <div id="password-error" class="hidden p-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm font-semibold"></div>
+                        <div class="flex justify-end">
+                            <button type="submit" class="px-5 py-2 rounded-xl bg-primary-500 text-white font-bold shadow-md shadow-primary-500/25 hover:bg-primary-600 transition text-sm">
+                                <i class="fa-solid fa-key mr-1.5"></i> Ubah Password
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Info box -->
+                <div class="bg-primary-50 border border-primary-100 rounded-2xl p-5 text-sm text-primary-700 font-medium">
+                    <i class="fa-solid fa-circle-info mr-1.5"></i>
+                    Password admin disimpan di browser ini (localStorage). Default: <code style="background:#bae6fd;padding:1px 5px;border-radius:3px;font-weight:700">ramxcode2026</code>
+                </div>
+
+            </div>
+
+        </main>
+    </div><!-- end admin-panel -->
+
+    <script src="admin.js"></script>
+</body>
+</html>
+
